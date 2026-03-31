@@ -31,10 +31,13 @@ function handleSubmit() {
     return
   }
 
-  const questionTypes =
-    questionTypeMode.value === 'both'
-      ? ['multiple_choice', 'true_false']
-      : [questionTypeMode.value]
+  const questionTypes: NonNullable<CreateQuizJobRequest['questionTypes']> = []
+
+  if (questionTypeMode.value === 'both') {
+    questionTypes.push('multiple_choice', 'true_false')
+  } else {
+    questionTypes.push(questionTypeMode.value)
+  }
 
   isSubmitting.value = true
   emit('submit', {
