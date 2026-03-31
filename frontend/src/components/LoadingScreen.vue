@@ -1,26 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { QUIZ_FLOW_STEPS, type QuizFlowStep } from '@/constants/quizProgress'
 
 interface Props {
-  currentStep: string
+  currentStep: QuizFlowStep | string
 }
 
 const props = defineProps<Props>()
 
-const steps = [
-  { key: 'validating', label: 'Validando URL...', icon: '🔗' },
-  { key: 'creating', label: 'Creando trabajo...', icon: '📋' },
-  { key: 'queued', label: 'En cola de procesamiento...', icon: '⏳' },
-  { key: 'validating', label: 'Validando video...', icon: '✅' },
-  { key: 'extracting', label: 'Extrayendo transcripción...', icon: '📝' },
-  { key: 'analyzing', label: 'Analizando contenido...', icon: '🧠' },
-  { key: 'generating', label: 'Generando preguntas...', icon: '❓' },
-  { key: 'ready', label: '¡Listo para comenzar!', icon: '🎉' },
-]
+const steps = QUIZ_FLOW_STEPS
 
 const currentStepIndex = computed(() => {
   const index = steps.findIndex((s) => s.key === props.currentStep)
-  return index >= 0 ? index : 1
+  return index >= 0 ? index : 0
 })
 
 const progress = computed(() => {
@@ -30,11 +22,6 @@ const progress = computed(() => {
 const currentStepLabel = computed(() => {
   const step = steps.find((s) => s.key === props.currentStep)
   return step?.label || props.currentStep || 'Procesando...'
-})
-
-const currentStepIcon = computed(() => {
-  const step = steps.find((s) => s.key === props.currentStep)
-  return step?.icon || '⏳'
 })
 
 function getStepClass(index: number) {

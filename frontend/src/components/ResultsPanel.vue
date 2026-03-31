@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useQuizStore } from '@/stores/quiz'
+import { useRouter } from 'vue-router'
 
 const store = useQuizStore()
+const router = useRouter()
 
 const emoji = computed(() => {
   const pct = store.percentage
@@ -25,6 +27,11 @@ const encouragement = computed(() => {
   if (pct >= 70) return 'Repasa los conceptos para consolidar tu conocimiento'
   return 'Te recomendamos volver a ver las secciones relacionadas'
 })
+
+function handleNewQuiz() {
+  store.resetQuiz()
+  router.push('/')
+}
 </script>
 
 <template>
@@ -108,7 +115,7 @@ const encouragement = computed(() => {
     </div>
 
     <div class="flex gap-4">
-      <button class="btn-secondary flex-1" @click="store.resetQuiz()">Nuevo Quiz</button>
+      <button class="btn-secondary flex-1" @click="handleNewQuiz">Nuevo Quiz</button>
     </div>
   </div>
 </template>

@@ -90,7 +90,7 @@ export const useQuizStore = defineStore('quiz', () => {
     const questionEval = evaluation.value?.details.find(
       (d) => d.questionId === currentQuestion.value?.id,
     )
-    const isCorrect = questionEval?.correct || false
+    const isCorrect = selectedOption.value === currentQuestion.value.correctOptionId
 
     results.value.push({
       questionId: currentQuestion.value.id,

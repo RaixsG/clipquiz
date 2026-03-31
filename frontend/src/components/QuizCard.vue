@@ -13,6 +13,12 @@ const shuffledOptions = computed(() => {
   return [...store.currentQuestion.options].sort(() => Math.random() - 0.5)
 })
 
+const correctOptionId = computed(() => store.currentQuestion?.correctOptionId ?? null)
+const isCurrentSelectionCorrect = computed(() => {
+  if (!store.currentQuestion || !store.selectedOption) return false
+  return store.selectedOption === store.currentQuestion.correctOptionId
+})
+
 function getOptionClass(option: QuizOption) {
   const base = 'quiz-option'
 
@@ -23,17 +29,13 @@ function getOptionClass(option: QuizOption) {
     }
   }
 
-  const currentResult = store.results.find((r) => r.questionId === store.currentQuestion?.id)
-  const isCorrectOption = currentResult?.isCorrect
-    ? option.id !== store.selectedOption
-    : store.quizData?.questions.find((q) => q.id === store.currentQuestion?.id)?.options[0]?.id ===
-      option.id
+  const isCorrectOption = option.id === correctOptionId.value
 
-  if (isCorrectOption && !currentResult?.isCorrect) {
+  if (isCorrectOption) {
     return { [base]: true, correct: true }
   }
 
-  if (store.selectedOption === option.id && !currentResult?.isCorrect) {
+  if (store.selectedOption === option.id && !isCurrentSelectionCorrect.value) {
     return { [base]: true, incorrect: true }
   }
 
@@ -41,14 +43,7 @@ function getOptionClass(option: QuizOption) {
 }
 
 function isOptionCorrect(option: QuizOption): boolean {
-  const currentResult = store.results.find((r) => r.questionId === store.currentQuestion?.id)
-  if (currentResult?.isCorrect) {
-    return option.id === currentResult.selectedOptionId
-  }
-  return (
-    store.quizData?.questions.find((q) => q.id === store.currentQuestion?.id)?.options[0]?.id ===
-    option.id
-  )
+  return option.id === correctOptionId.value
 }
 
 function isOptionSelected(option: QuizOption): boolean {
@@ -125,16 +120,16 @@ async function handleNext() {
           <span
             class="flex-shrink-0 w-6 h-6 rounded-full border-2 border-surface-300 flex items-center justify-center text-sm font-medium"
             :class="{
-              'border-primary-500 bg-primary-500 text-white':
-                isOptionSelected(option) && !store.showFeedback,
-              'border-green-500 bg-green-500 text-white':
-                store.showFeedback && isOptionCorrect(option),
-              'border-red-500 bg-red-500 text-white':
-                store.showFeedback && isOptionSelected(option) && !isOptionCorrect(option),
-              'border-surface-300':
-                (!store.showFeedback && !isOptionSelected(option)) ||
-                (store.showFeedback && !isOptionCorrect(option) && !isOptionSelected(option)),
-            }"
+                  'border-primary-500 bg-primary-500 text-white':
+                      isOptionSelected(option) && !store.showFeedback,
+                    'border-green-500 bg-green-500 text-white':
+                      store.showFeedback && isOptionCorrect(option),
+                    'border-red-500 bg-red-500 text-white':
+                      store.showFeedback && isOptionSelected(option) && !isOptionCorrect(option),
+                    'border-surface-300':
+                      (!store.showFeedback && !isOptionSelected(option)) ||
+                      (store.showFeedback && !isOptionCorrect(option) && !isOptionSelected(option)),
+                  }"
           >
             <svg
               v-if="store.showFeedback && isOptionCorrect(option)"
@@ -174,24 +169,24 @@ async function handleNext() {
       v-if="store.showFeedback"
       class="mb-6 p-4 rounded-xl"
       :class="
-        store.isAnswerCorrect
+        isCurrentSelectionCorrect
           ? 'bg-green-50 border border-green-200'
           : 'bg-amber-50 border border-amber-200'
       "
     >
       <div class="flex items-start gap-3">
-        <span class="text-2xl">{{ store.isAnswerCorrect ? '✅' : '💡' }}</span>
+        <span class="text-2xl">{{ isCurrentSelectionCorrect ? '✅' : '💡' }}</span>
         <div>
           <p
             class="font-semibold"
-            :class="store.isAnswerCorrect ? 'text-green-800' : 'text-amber-800'"
+            :class="isCurrentSelectionCorrect ? 'text-green-800' : 'text-amber-800'"
           >
-            {{ store.isAnswerCorrect ? '¡Correcto!' : '¡Incorrecto!' }}
+            {{ isCurrentSelectionCorrect ? '¡Correcto!' : '¡Incorrecto!' }}
           </p>
           <p
             v-if="store.currentQuestion?.explanation"
             class="text-sm mt-1"
-            :class="store.isAnswerCorrect ? 'text-green-700' : 'text-amber-700'"
+            :class="isCurrentSelectionCorrect ? 'text-green-700' : 'text-amber-700'"
           >
             {{ store.currentQuestion.explanation }}
           </p>

@@ -7,32 +7,29 @@ import UrlInput from '@/components/UrlInput.vue'
 const router = useRouter()
 const store = useQuizStore()
 
-const PROGRESS_MAPPING: Record<string, string> = {
-  queued: 'Preparando quiz...',
-  validating: 'Validando URL...',
-  extracting: 'Extrayendo transcripción...',
-  analyzing: 'Analizando contenido...',
-  generating: 'Generando preguntas...',
-  ready: '¡Listo!',
-  failed: 'Error en el procesamiento',
-}
-
-async function handleSubmit(url: string) {
+async function handleSubmit(payload: {
+  youtubeUrl: string
+  questionCount?: number
+  questionTypes?: Array<'multiple_choice' | 'true_false'>
+}) {
   store.setLoading('validating')
   router.push('/processing')
 
   try {
     store.setLoading('creating')
-    const { jobId } = await createQuizJob(url)
+    const { jobId } = await createQuizJob(payload)
 
-    const jobStatus = await waitForQuizJobToFinish(jobId)
-    store.setLoading(PROGRESS_MAPPING[jobStatus.status] || 'Procesando...')
+    const jobStatus = await waitForQuizJobToFinish(jobId, {
+      onStatusChange: (status) => {
+        store.setLoading(status.status)
+      },
+    })
 
     if (jobStatus.status === 'failed') {
       throw new Error(jobStatus.errorMessage || 'El procesamiento del quiz falló')
     }
 
-    store.setLoading('ready')
+    store.setLoading('finalizing')
     const result = await getQuizJobResult(jobId)
 
     store.setQuizData(result.quiz, result.videoTitle || '', jobId)
@@ -48,18 +45,11 @@ async function handleSubmit(url: string) {
 <template>
   <div class="min-h-[80vh] flex flex-col items-center justify-center px-4">
     <div class="text-center mb-12">
-      <div
-        class="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 mb-6 shadow-lg shadow-primary-500/30"
-      >
-        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-          />
-        </svg>
-      </div>
+      <img
+        src="/logo.png"
+        class="inline-block w-34 h-24 rounded-2xl mb-6 shadow-lg shadow-primary-500/30"
+        alt="ClipQuiz Logo"
+      />
       <h1 class="text-4xl font-bold text-surface-800 mb-3">
         <span class="text-gradient">Clip</span>Quiz
       </h1>

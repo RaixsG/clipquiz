@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { CreateQuizJobRequest } from '@/services/api'
 
 const emit = defineEmits<{
-  submit: [url: string]
+  submit: [payload: CreateQuizJobRequest]
 }>()
 
 const url = ref('')
 const error = ref('')
 const isSubmitting = ref(false)
+const questionCount = ref(10)
+const questionTypeMode = ref<'both' | 'multiple_choice' | 'true_false'>('both')
 
 function validateUrl(value: string): boolean {
   const pattern =
@@ -28,8 +31,17 @@ function handleSubmit() {
     return
   }
 
+  const questionTypes =
+    questionTypeMode.value === 'both'
+      ? ['multiple_choice', 'true_false']
+      : [questionTypeMode.value]
+
   isSubmitting.value = true
-  emit('submit', url.value)
+  emit('submit', {
+    youtubeUrl: url.value,
+    questionCount: questionCount.value,
+    questionTypes,
+  })
 }
 </script>
 
@@ -65,6 +77,61 @@ function handleSubmit() {
       <p v-if="error" class="text-red-500 text-sm px-2">
         {{ error }}
       </p>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="card p-4 block">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-medium text-surface-700">Cantidad de preguntas</span>
+            <span class="text-sm font-semibold text-primary-700">{{ questionCount }}</span>
+          </div>
+          <input
+            v-model.number="questionCount"
+            type="range"
+            min="5"
+            max="15"
+            step="1"
+            class="w-full accent-primary-500"
+            :disabled="isSubmitting"
+          />
+          <div class="mt-2 flex justify-between text-xs text-surface-400">
+            <span>5</span>
+            <span>15</span>
+          </div>
+        </label>
+
+        <div class="card p-4">
+          <p class="font-medium text-surface-700 mb-3">Tipo de preguntas</p>
+          <div class="grid gap-2">
+            <button
+              type="button"
+              class="btn-secondary text-sm"
+              :class="questionTypeMode === 'both' ? 'border-primary-500 bg-primary-50 text-primary-700' : ''"
+              :disabled="isSubmitting"
+              @click="questionTypeMode = 'both'"
+            >
+              Ambas
+            </button>
+            <button
+              type="button"
+              class="btn-secondary text-sm"
+              :class="questionTypeMode === 'multiple_choice' ? 'border-primary-500 bg-primary-50 text-primary-700' : ''"
+              :disabled="isSubmitting"
+              @click="questionTypeMode = 'multiple_choice'"
+            >
+              Solo alternativas
+            </button>
+            <button
+              type="button"
+              class="btn-secondary text-sm"
+              :class="questionTypeMode === 'true_false' ? 'border-primary-500 bg-primary-50 text-primary-700' : ''"
+              :disabled="isSubmitting"
+              @click="questionTypeMode = 'true_false'"
+            >
+              Solo verdadero o falso
+            </button>
+          </div>
+        </div>
+      </div>
 
       <button type="submit" class="btn-primary w-full text-lg" :disabled="isSubmitting">
         <span v-if="!isSubmitting">Crear Quiz</span>

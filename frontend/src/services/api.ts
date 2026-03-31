@@ -10,6 +10,7 @@ export interface QuizQuestion {
   type: 'multiple_choice' | 'true_false'
   prompt: string
   options: QuizOption[]
+  correctOptionId: string
   explanation?: string
   concepts: string[]
 }
@@ -38,11 +39,14 @@ export interface JobStatus {
   updatedAt: string
 }
 
+export type QuizJobStatus = JobStatus['status']
+
 export interface PollJobOptions {
   initialDelayMs?: number
   maxDelayMs?: number
   maxWaitMs?: number
   backoffMultiplier?: number
+  onStatusChange?: (status: JobStatus) => void
 }
 
 export interface QuizSubmission {
@@ -50,6 +54,12 @@ export interface QuizSubmission {
     questionId: string
     optionId: string
   }>
+}
+
+export interface CreateQuizJobRequest {
+  youtubeUrl: string
+  questionCount?: number
+  questionTypes?: Array<'multiple_choice' | 'true_false'>
 }
 
 export interface QuizEvaluation {
@@ -80,13 +90,15 @@ export function isValidYouTubeUrl(url: string): boolean {
   return pattern.test(url)
 }
 
-export async function createQuizJob(youtubeUrl: string): Promise<{ jobId: string }> {
+export async function createQuizJob(
+  payload: CreateQuizJobRequest,
+): Promise<{ jobId: string }> {
   const response = await fetch(`${API_URL}/api/quiz/jobs`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ youtubeUrl }),
+    body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
@@ -130,6 +142,7 @@ export async function waitForQuizJobToFinish(
 
   while (Date.now() - startedAt <= maxWaitMs) {
     const status = await getQuizJobStatus(jobId)
+    options.onStatusChange?.(status)
 
     if (status.status === 'ready' || status.status === 'failed') {
       return status
