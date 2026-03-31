@@ -95,12 +95,6 @@ ClipQuiz está desplegado en una instancia **Cloud VPS** en Miami con **Dokploy*
 
 ---
 
-## 📝 Licencia
-
-Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
----
-
 ## 📧 Contacto
 
 ![Correo](jhardelloficial@gmail.com)
