@@ -69,6 +69,7 @@ const quizQuestionPreviewSchema = z.object({
   type: questionTypeSchema,
   prompt: z.string(),
   options: z.array(quizOptionSchema),
+  correctOptionId: z.string(),
 });
 
 const quizSummarySchema = z.object({

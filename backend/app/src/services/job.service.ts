@@ -116,9 +116,14 @@ const processJob = async (jobId: string) => {
     }
 
     updateJob(jobId, {
+      status: "analyzing",
+      progressMessage: "Analizando contenido...",
+    });
+
+    updateJob(jobId, {
       status: "generating",
       videoTitle: transcriptResult.title,
-      progressMessage: "Analizando contenido y disenando preguntas...",
+      progressMessage: "Generando preguntas...",
     });
 
     logJob("Starting LLM generation", {
@@ -249,6 +254,7 @@ export const getQuizJobResult = (jobId: string) => {
         type: question.type,
         prompt: question.prompt,
         options: question.options,
+        correctOptionId: question.correctOptionId,
       })),
     },
   };
