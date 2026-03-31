@@ -38,6 +38,7 @@ const app = new Elysia()
     cors({
       origin: [
         /.*\.raixslabs\.com$/,
+        /.*\.traefik.me\.com$/,
         /http:\/\/localhost:\d+$/,
       ], // Permitir solo subdominios de raixslabs.com
       // origin: true, // Permitir todas las fuentes (en producción, restringir a tu frontend)
